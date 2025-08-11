@@ -1,1 +1,252 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clicker Horizontal Pretty</title>
+<style>
+  body { font-family: monospace; background: #f7f7f7; margin:0; padding:0; }
+  #container { background:#fff; border:1px solid #ccc; border-radius:4px; padding:5px; display:inline-block; }
+  .topRow { display:flex; align-items:stretch; gap:5px; margin-bottom:5px; }
+  .clickers { display:flex; gap:3px; align-items:stretch; }
+  .col { display:flex; flex-direction:column; gap:4px; justify-content:space-between; }
+  .col button { width:70px; padding:6px; font-size:13px; cursor:pointer; }
+  .col input { width:70px; padding:1px; box-sizing:border-box; text-align:center; font-size:13px; }
+  /* totals */
+  #totalsRow { display:flex; align-items:center; gap:3px; background:#fafafa; border:1px solid #ccc;
+    padding:3px; border-radius:4px; font-size:12px; }
+  .totalsLeft { display:flex; flex-direction:column; gap:5px; }
+  .totalsItem { display:flex; gap:2px; align-items:center; font-size:14px; }
+  .totalsItem .label { color:#333; font-weight:600; }
+  .totalsItem .value { font-weight:700; font-size:15px; }
+  .totalsRight { display:flex; flex-direction:column; gap:3px; align-items:stretch; height:100%; justify-content:center; }
+  .rightTop { display:flex; gap:4px; }
+  #resetAll, #toggleStopwatch { flex:1; font-size:12px; padding:3px; cursor:pointer;
+    background:#eee; border:1px solid #ccc; border-radius:4px; text-align:center; }
+  #toggleTotp { font-size:11px; padding:3px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; }
+  /* stopwatch row */
+  #stopwatchRow { display:flex; justify-content:center; align-items:center; gap:8px; }
+  #stopwatch { font-size:22px; font-weight:700; min-width:80px; text-align:center; }
+  #pause { font-size:13px; padding:6px 10px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; }
+  /* TOTP container */
+  #totpContainer { margin-top:6px; border-top:1px solid #ddd; padding-top:6px; display:none; }
+  #totpSecret { width:100%; padding:5px; box-sizing:border-box; font-family:monospace; font-size:12px; }
+  #totpCode { margin-top:4px; font-family:monospace; font-size:16px; font-weight:700; letter-spacing:4px;
+    text-align:center; padding:4px; border-radius:4px; border:1px dashed #ddd; cursor:pointer; user-select:none; }
+  #totpTimer { font-size:11px; text-align:center; margin-top:4px; color:#333; }
+</style>
+</head>
+<body>
+<div id="container">
+  <div class="topRow">
+    <div class="clickers">
+      <div class="col">
+        <button id="btn1">VID</button>
+        <input id="click1" type="number" min="0" value="0">
+      </div>
+      <div class="col">
+        <button id="btn2">COM</button>
+        <input id="click2" type="number" min="0" value="0">
+      </div>
+      <div class="col">
+        <button id="btn3">POST</button>
+        <input id="click3" type="number" min="0" value="0">
+      </div>
+    </div>
+    <div id="totalsRow">
+      <div class="totalsLeft">
+        <div class="totalsItem"><div class="label">%</div><div class="value" id="totalPercent">0.00%</div></div>
+        <div class="totalsItem"><div class="label">Σ</div><div class="value" id="totalClicks">0</div></div>
+      </div>
+      <div class="totalsRight">
+        <div class="rightTop">
+          <button id="resetAll">Reset</button>
+          <button id="toggleStopwatch">⏱</button>
+        </div>
+        <button id="toggleTotp">TOTP</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="stopwatchRow">
+    <div id="stopwatch">00:00</div>
+    <button id="pause">Pause</button>
+  </div>
+
+  <div id="totpContainer">
+    <input id="totpSecret" placeholder="Secret code">
+    <div id="totpCode">------</div>
+    <div id="totpTimer"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const btn1 = document.getElementById('btn1');
+  const btn2 = document.getElementById('btn2');
+  const btn3 = document.getElementById('btn3');
+  const click1 = document.getElementById('click1');
+  const click2 = document.getElementById('click2');
+  const click3 = document.getElementById('click3');
+  const totalPercent = document.getElementById('totalPercent');
+  const totalClicks = document.getElementById('totalClicks');
+  const resetAll = document.getElementById('resetAll');
+  const toggleStopwatch = document.getElementById('toggleStopwatch');
+  const stopwatchRow = document.getElementById('stopwatchRow');
+  const pauseBtn = document.getElementById('pause');
+  const stopwatchEl = document.getElementById('stopwatch');
+  const toggleTotp = document.getElementById('toggleTotp');
+  const totpContainer = document.getElementById('totpContainer');
+  const totpSecret = document.getElementById('totpSecret');
+  const totpCode = document.getElementById('totpCode');
+  const totpTimer = document.getElementById('totpTimer');
+
+  const w1 = 0.83, w2 = 0.2, w3 = 0.6;
+  let swStart = null, swElapsed = 0, swRunning = false, swInterval = null;
+
+  function fmt(ms){ const s = Math.floor(ms/1000); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
+  function updateStopwatchDisplay(){ stopwatchEl.textContent = fmt(swRunning ? (Date.now()-swStart) : swElapsed); }
+  function startStopwatch(){
+    swStart = Date.now();
+    swElapsed = 0;
+    swRunning = true;
+    clearInterval(swInterval);
+    swInterval = setInterval(updateStopwatchDisplay, 250);
+    updateStopwatchDisplay();
+    saveState();
+  }
+  function pauseStopwatch(){
+    swStart = null; swElapsed = 0; swRunning = false;
+    clearInterval(swInterval); updateStopwatchDisplay(); saveState();
+  }
+  function updateTotals(){
+    const v1 = +click1.value||0, v2 = +click2.value||0, v3 = +click3.value||0;
+    totalClicks.textContent = v1 + v2 + v3;
+    totalPercent.textContent = (v1*w1 + v2*w2 + v3*w3).toFixed(2) + '%';
+	updateTitle();
+  }
+
+  btn1.onclick = () => { click1.value = (+click1.value||0)+1; updateTotals(); startStopwatch(); };
+  btn2.onclick = () => { click2.value = (+click2.value||0)+1; updateTotals(); startStopwatch(); };
+  btn3.onclick = () => { click3.value = (+click3.value||0)+1; updateTotals(); startStopwatch(); };
+
+  [click1, click2, click3].forEach(el => el.addEventListener('input', () => { updateTotals(); saveState(); }));
+  pauseBtn.onclick = pauseStopwatch;
+  toggleStopwatch.onclick = () => { stopwatchRow.style.display = getComputedStyle(stopwatchRow).display === 'none' ? 'flex' : 'none'; saveState(); };
+  resetAll.onclick = () => { click1.value = 0; click2.value = 0; click3.value = 0; updateTotals(); pauseStopwatch(); };
+
+  // TOTP
+  function base32ToHex(base32){
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; let bits="", hex="";
+    base32 = (base32||"").replace(/\s+/g,'').replace(/=+$/,'').toUpperCase();
+    for (const ch of base32) { const idx = alphabet.indexOf(ch); if (idx < 0) return null; bits += idx.toString(2).padStart(5,'0'); }
+    for (let i=0; i+4<=bits.length; i+=4) hex += parseInt(bits.substr(i,4),2).toString(16);
+    return hex;
+  }
+  function hexToBytes(hex){ const arr=new Uint8Array(hex.length/2); for(let i=0;i<arr.length;i++) arr[i]=parseInt(hex.substr(i*2,2),16); return arr; }
+  async function hmacSha1(kHex,mHex){ const key=await crypto.subtle.importKey("raw",hexToBytes(kHex),{name:"HMAC",hash:"SHA-1"},false,["sign"]); return new Uint8Array(await crypto.subtle.sign("HMAC",key,hexToBytes(mHex))); }
+  async function generateTOTP(secret, step=30){
+    const kHex = base32ToHex(secret); if (!kHex) return null;
+    const epoch = Math.floor(Date.now()/1000);
+    const t = Math.floor(epoch/step);
+    const tHex = t.toString(16).padStart(16,'0');
+    const hmac = await hmacSha1(kHex, tHex);
+    const offset = hmac[hmac.length-1] & 0xf;
+    const code = ((hmac[offset]&0x7f)<<24)|((hmac[offset+1]&0xff)<<16)|((hmac[offset+2]&0xff)<<8)|(hmac[offset+3]&0xff);
+    return (code % 1e6).toString().padStart(6,'0');
+  }
+  async function updateTotpCode(){
+    const s = totpSecret.value.trim();
+    if (!s) { totpCode.textContent="------"; totpTimer.textContent=""; return; }
+    totpCode.textContent = await generateTOTP(s) || "Error";
+  }
+  let lastStep=null, totpInterval=null;
+  function startTotp(){
+    updateTotpCode();
+    lastStep = Math.floor(Math.floor(Date.now()/1000)/30);
+    totpTimer.textContent = `Update in ${30 - (Math.floor(Date.now()/1000)%30)}s`;
+    clearInterval(totpInterval);
+    totpInterval = setInterval(()=>{
+      const epoch=Math.floor(Date.now()/1000);
+      const step=Math.floor(epoch/30);
+      const left=30-(epoch%30);
+      totpTimer.textContent=`Update in ${left}s`;
+      if(step!==lastStep){ lastStep=step; updateTotpCode(); }
+    },500);
+  }
+  function stopTotp(){ clearInterval(totpInterval); totpTimer.textContent=""; }
+
+  toggleTotp.onclick = () => {
+    const hidden = getComputedStyle(totpContainer).display === 'none';
+    if (hidden) { totpContainer.style.display='block'; startTotp(); }
+    else { totpContainer.style.display='none'; stopTotp(); }
+    saveState();
+  };
+  totpSecret.addEventListener('input', () => { updateTotpCode(); saveState(); });
+  totpCode.addEventListener('click', () => {
+    const t = totpCode.textContent.trim();
+    if (t && t!=="------" && t!=="Error") {
+      navigator.clipboard.writeText(t).then(()=>{
+        const original = totpCode.textContent;
+        totpCode.textContent = "Copied!";
+        setTimeout(()=>{ totpCode.textContent = original; }, 1000);
+      });
+    }
+  });
+
+  // storage
+  const KEY='appState_h2';
+  function saveState(){
+    const elapsed = swRunning ? (Date.now()-swStart) : swElapsed;
+    localStorage.setItem(KEY, JSON.stringify({
+      click1:+click1.value||0,
+      click2:+click2.value||0,
+      click3:+click3.value||0,
+      totpSecret:totpSecret.value||'',
+      totpOpen:getComputedStyle(totpContainer).display!=='none',
+      stopwatchVisible:getComputedStyle(stopwatchRow).display!=='none',
+      stopwatchElapsed:elapsed
+    }));
+  }
+  function loadState(){
+    try{
+      const st=JSON.parse(localStorage.getItem(KEY)||'{}');
+      if(st.click1!==undefined) click1.value=st.click1;
+      if(st.click2!==undefined) click2.value=st.click2;
+      if(st.click3!==undefined) click3.value=st.click3;
+      if(st.totpSecret) totpSecret.value=st.totpSecret;
+      stopwatchRow.style.display=st.stopwatchVisible===false?'none':'flex';
+      swElapsed=st.stopwatchElapsed||0;
+      if(st.totpOpen){ totpContainer.style.display='block'; startTotp(); }
+    }catch(e){}
+  }
+
+  loadState();
+  updateTotals();
+  updateStopwatchDisplay();
+  function updateTitle() {
+  let percent = totalPercent.textContent.trim();
+  let clicks = totalClicks.textContent.trim();
+
+  if (clicks !== "0") {
+    document.title = `${clicks}  | ${percent}`;
+  } else {
+    document.title = "Project DIMA";
+  }
+}
+
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js')
+    .then(() => console.log('Service Worker зареєстровано'));
+}
+</script>
+
+</body>
+</html>
+
 
