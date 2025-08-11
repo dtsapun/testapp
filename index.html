@@ -8,24 +8,24 @@
 <title>Clicker Horizontal Pretty</title>
 <style>
   body { font-family: monospace; background: #f7f7f7; margin:0; padding:0; }
-  #container { background:#fff; border:1px solid #ccc; border-radius:6px; padding:8px; display:inline-block; }
-  .topRow { display:flex; align-items:stretch; gap:8px; margin-bottom:12px; }
-  .clickers { display:flex; gap:6px; align-items:stretch; }
+  #container { background:#fff; border:1px solid #ccc; border-radius:4px; padding:5px; display:inline-block; }
+  .topRow { display:flex; align-items:stretch; gap:5px; margin-bottom:5px; }
+  .clickers { display:flex; gap:3px; align-items:stretch; }
   .col { display:flex; flex-direction:column; gap:4px; justify-content:space-between; }
   .col button { width:70px; padding:6px; font-size:13px; cursor:pointer; }
-  .col input { width:70px; padding:5px; box-sizing:border-box; text-align:center; font-size:13px; }
+  .col input { width:70px; padding:1px; box-sizing:border-box; text-align:center; font-size:13px; }
   /* totals */
-  #totalsRow { display:flex; align-items:center; gap:10px; background:#fafafa; border:1px solid #ccc;
-    padding:6px; border-radius:4px; font-size:12px; }
-  .totalsLeft { display:flex; flex-direction:column; gap:6px; }
-  .totalsItem { display:flex; gap:4px; align-items:center; font-size:14px; }
+  #totalsRow { display:flex; align-items:center; gap:3px; background:#fafafa; border:1px solid #ccc;
+    padding:3px; border-radius:4px; font-size:12px; }
+  .totalsLeft { display:flex; flex-direction:column; gap:5px; }
+  .totalsItem { display:flex; gap:2px; align-items:center; font-size:14px; }
   .totalsItem .label { color:#333; font-weight:600; }
   .totalsItem .value { font-weight:700; font-size:15px; }
-  .totalsRight { display:flex; flex-direction:column; gap:6px; align-items:stretch; height:100%; justify-content:center; }
+  .totalsRight { display:flex; flex-direction:column; gap:3px; align-items:stretch; height:100%; justify-content:center; }
   .rightTop { display:flex; gap:4px; }
-  #resetAll, #toggleStopwatch { flex:1; font-size:12px; padding:5px; cursor:pointer;
+  #resetAll, #toggleStopwatch { flex:1; font-size:12px; padding:3px; cursor:pointer;
     background:#eee; border:1px solid #ccc; border-radius:4px; text-align:center; }
-  #toggleTotp { font-size:11px; padding:4px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; }
+  #toggleTotp { font-size:11px; padding:3px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; }
   /* stopwatch row */
   #stopwatchRow { display:flex; justify-content:center; align-items:center; gap:8px; }
   #stopwatch { font-size:22px; font-weight:700; min-width:80px; text-align:center; }
@@ -125,6 +125,7 @@
     const v1 = +click1.value||0, v2 = +click2.value||0, v3 = +click3.value||0;
     totalClicks.textContent = v1 + v2 + v3;
     totalPercent.textContent = (v1*w1 + v2*w2 + v3*w3).toFixed(2) + '%';
+	updateTitle();
   }
 
   btn1.onclick = () => { click1.value = (+click1.value||0)+1; updateTotals(); startStopwatch(); };
@@ -225,6 +226,17 @@
   loadState();
   updateTotals();
   updateStopwatchDisplay();
+  function updateTitle() {
+  let percent = totalPercent.textContent.trim();
+  let clicks = totalClicks.textContent.trim();
+
+  if (clicks !== "0") {
+    document.title = `${clicks}  | ${percent}`;
+  } else {
+    document.title = "Project DIMA";
+  }
+}
+
 })();
 </script>
 <script>
@@ -233,22 +245,6 @@ if ('serviceWorker' in navigator) {
     .then(() => console.log('Service Worker зареєстровано'));
 }
 </script>
-<script>
-// Зберігаємо розмір перед закриттям
-window.addEventListener('beforeunload', () => {
-  localStorage.setItem('trackerWindowSize', JSON.stringify({
-    width: window.outerWidth,
-    height: window.outerHeight
-  }));
-});
 
-// При завантаженні вікна пробуємо змінити його розмір
-window.addEventListener('load', () => {
-  const savedSize = JSON.parse(localStorage.getItem('trackerWindowSize') || '{}');
-  if (savedSize.width && savedSize.height) {
-    window.resizeTo(savedSize.width, savedSize.height);
-  }
-});
-</script>
 </body>
 </html>
