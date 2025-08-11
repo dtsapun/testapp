@@ -1,6 +1,6 @@
 {
   "name": "",
-  "short_name": "",
+  "short_name": " ",
   "start_url": "./launcher.html",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -19,6 +19,7 @@
   ]
 
 }
+
 
 
 
