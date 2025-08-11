@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Launching Project DIMA...</title>
+<script>
+window.onload = function() {
+    const win = window.open(
+        '/index.html', // тут твій трекер
+        '_blank',
+        'width=350,height=700,menubar=no,toolbar=no,location=no,status=no'
+    );
+    if (win) {
+        window.close();
+    } else {
+        document.body.innerHTML = '<p>Не вдалося відкрити вікно. Дозвольте спливаючі вікна.</p>';
+    }
+};
+</script>
+</head>
+<body>
+</body>
+</html>
