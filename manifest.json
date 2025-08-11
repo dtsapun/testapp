@@ -2,7 +2,7 @@
   "name": "🐧",
   "short_name": "DIMA",
   "start_url": "./launcher.html",
-  "display": "minimal-ui",
+  "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "icons": [
@@ -19,5 +19,6 @@
   ]
 
 }
+
 
 
