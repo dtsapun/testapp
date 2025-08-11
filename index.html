@@ -126,7 +126,7 @@
   }
   function toBoldFullwidth(numStr) {
   const map = {
-    '0': '𝟬', '1': '𝟭', '2': '𝟮', '3': '𝟯', '4': '𝟰',
+    '0': '𝟬', '1': '1️⃣', '2': '𝟮', '3': '𝟯', '4': '𝟰',
     '5': '𝟱', '6': '𝟲', '7': '𝟳', '8': '𝟴', '9': '𝟵'
   };
   return numStr.toString().split('').map(ch => map[ch] || ch).join('');
@@ -315,6 +315,7 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
 
