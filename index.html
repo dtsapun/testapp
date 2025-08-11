@@ -5,32 +5,42 @@
 <meta name="theme-color" content="#ffffff">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Clicker Horizontal Pretty</title>
+<title>Project DIMA</title>
 <style>
   body { font-family: monospace; background: #f7f7f7; margin:0; padding:0; }
   #container { background:#fff; border:1px solid #ccc; border-radius:4px; padding:5px; display:inline-block; }
-  .topRow { display:flex; align-items:stretch; gap:5px; margin-bottom:5px; }
+  .topRow { display:flex; align-items:stretch; gap:5px; margin-bottom:0px; }
   .clickers { display:flex; gap:3px; align-items:stretch; }
   .col { display:flex; flex-direction:column; gap:4px; justify-content:space-between; }
   .col button { width:70px; padding:6px; font-size:13px; cursor:pointer; }
   .col input { width:70px; padding:1px; box-sizing:border-box; text-align:center; font-size:13px; }
-  /* totals */
   #totalsRow { display:flex; align-items:center; gap:3px; background:#fafafa; border:1px solid #ccc;
     padding:3px; border-radius:4px; font-size:12px; }
-  .totalsLeft { display:flex; flex-direction:column; gap:5px; }
-  .totalsItem { display:flex; gap:2px; align-items:center; font-size:14px; }
-  .totalsItem .label { color:#333; font-weight:600; }
-  .totalsItem .value { font-weight:700; font-size:15px; }
+  .totalsLeft { display:flex; flex-direction:column; gap:3px; align-items:center; }
+  #stopwatchSmall {
+  font-size: 20px;       /* трохи більший шрифт */
+  font-weight: 1000;      /* жирніший */
+  min-width: 60px;       /* вужчий */
+  height: 24px;          /* трохи вищий */
+  line-height: 28px;     /* вирівнювання по вертикалі */
+  text-align: center;
+}
+
+#pauseSmall {
+  font-size: 11px;
+  padding: 3px 11px;
+  height: 19px;          /* така сама висота як у секундоміра */
+  cursor: pointer;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
   .totalsRight { display:flex; flex-direction:column; gap:3px; align-items:stretch; height:100%; justify-content:center; }
   .rightTop { display:flex; gap:4px; }
   #resetAll, #toggleStopwatch { flex:1; font-size:12px; padding:3px; cursor:pointer;
     background:#eee; border:1px solid #ccc; border-radius:4px; text-align:center; }
   #toggleTotp { font-size:11px; padding:3px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; }
-  /* stopwatch row */
-  #stopwatchRow { display:flex; justify-content:center; align-items:center; gap:8px; }
-  #stopwatch { font-size:22px; font-weight:700; min-width:80px; text-align:center; }
-  #pause { font-size:13px; padding:6px 10px; cursor:pointer; background:#eee; border:1px solid #ccc; border-radius:4px; }
-  /* TOTP container */
   #totpContainer { margin-top:6px; border-top:1px solid #ddd; padding-top:6px; display:none; }
   #totpSecret { width:100%; padding:5px; box-sizing:border-box; font-family:monospace; font-size:12px; }
   #totpCode { margin-top:4px; font-family:monospace; font-size:16px; font-weight:700; letter-spacing:4px;
@@ -57,22 +67,17 @@
     </div>
     <div id="totalsRow">
       <div class="totalsLeft">
-        <div class="totalsItem"><div class="label">%</div><div class="value" id="totalPercent">0.00%</div></div>
-        <div class="totalsItem"><div class="label">Σ</div><div class="value" id="totalClicks">0</div></div>
+        <div id="stopwatchSmall">00:00</div>
+        <button id="pauseSmall">Pause</button>
       </div>
       <div class="totalsRight">
-        <div class="rightTop">
+        <div class="rightTop" id="controlsRow">
           <button id="resetAll">Reset</button>
           <button id="toggleStopwatch">⏱</button>
         </div>
         <button id="toggleTotp">TOTP</button>
       </div>
     </div>
-  </div>
-
-  <div id="stopwatchRow">
-    <div id="stopwatch">00:00</div>
-    <button id="pause">Pause</button>
   </div>
 
   <div id="totpContainer">
@@ -90,24 +95,22 @@
   const click1 = document.getElementById('click1');
   const click2 = document.getElementById('click2');
   const click3 = document.getElementById('click3');
-  const totalPercent = document.getElementById('totalPercent');
-  const totalClicks = document.getElementById('totalClicks');
   const resetAll = document.getElementById('resetAll');
   const toggleStopwatch = document.getElementById('toggleStopwatch');
-  const stopwatchRow = document.getElementById('stopwatchRow');
-  const pauseBtn = document.getElementById('pause');
-  const stopwatchEl = document.getElementById('stopwatch');
+  const stopwatchSmall = document.getElementById('stopwatchSmall');
+  const pauseSmall = document.getElementById('pauseSmall');
   const toggleTotp = document.getElementById('toggleTotp');
   const totpContainer = document.getElementById('totpContainer');
   const totpSecret = document.getElementById('totpSecret');
   const totpCode = document.getElementById('totpCode');
   const totpTimer = document.getElementById('totpTimer');
+  const controlsRow = document.getElementById('controlsRow');
 
-  const w1 = 0.83, w2 = 0.2, w3 = 0.6;
+  const w1 = 0.83, w2 = 0.2, w3 = 0.4;
   let swStart = null, swElapsed = 0, swRunning = false, swInterval = null;
 
   function fmt(ms){ const s = Math.floor(ms/1000); return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
-  function updateStopwatchDisplay(){ stopwatchEl.textContent = fmt(swRunning ? (Date.now()-swStart) : swElapsed); }
+  function updateStopwatchDisplay(){ stopwatchSmall.textContent = fmt(swRunning ? (Date.now()-swStart) : swElapsed); }
   function startStopwatch(){
     swStart = Date.now();
     swElapsed = 0;
@@ -121,20 +124,34 @@
     swStart = null; swElapsed = 0; swRunning = false;
     clearInterval(swInterval); updateStopwatchDisplay(); saveState();
   }
+  function updateTitle(){
+    const clicks = (+click1.value||0) + (+click2.value||0) + (+click3.value||0);
+    const percent = ((+click1.value||0)*w1 + (+click2.value||0)*w2 + (+click3.value||0)*w3).toFixed(2);
+    if (clicks > 0) {
+      document.title = `${clicks} | ${percent}%`;
+    } else {
+      document.title = "Project DIMA";
+    }
+  }
   function updateTotals(){
-    const v1 = +click1.value||0, v2 = +click2.value||0, v3 = +click3.value||0;
-    totalClicks.textContent = v1 + v2 + v3;
-    totalPercent.textContent = (v1*w1 + v2*w2 + v3*w3).toFixed(2) + '%';
-	updateTitle();
+    updateTitle();
   }
 
   btn1.onclick = () => { click1.value = (+click1.value||0)+1; updateTotals(); startStopwatch(); };
   btn2.onclick = () => { click2.value = (+click2.value||0)+1; updateTotals(); startStopwatch(); };
   btn3.onclick = () => { click3.value = (+click3.value||0)+1; updateTotals(); startStopwatch(); };
-
   [click1, click2, click3].forEach(el => el.addEventListener('input', () => { updateTotals(); saveState(); }));
-  pauseBtn.onclick = pauseStopwatch;
-  toggleStopwatch.onclick = () => { stopwatchRow.style.display = getComputedStyle(stopwatchRow).display === 'none' ? 'flex' : 'none'; saveState(); };
+  pauseSmall.onclick = pauseStopwatch;
+
+  toggleStopwatch.onclick = () => { 
+    const visible = toggleStopwatch.dataset.visible === "true";
+    toggleStopwatch.dataset.visible = (!visible).toString();
+    stopwatchSmall.style.display = pauseSmall.style.display = visible ? "none" : "block";
+    if (visible) controlsRow.style.justifyContent = "flex-start";
+    else controlsRow.style.justifyContent = "";
+    saveState();
+  };
+
   resetAll.onclick = () => { click1.value = 0; click2.value = 0; click3.value = 0; updateTotals(); pauseStopwatch(); };
 
   // TOTP
@@ -197,7 +214,7 @@
   });
 
   // storage
-  const KEY='appState_h2';
+  const KEY='appState_compact';
   function saveState(){
     const elapsed = swRunning ? (Date.now()-swStart) : swElapsed;
     localStorage.setItem(KEY, JSON.stringify({
@@ -206,44 +223,37 @@
       click3:+click3.value||0,
       totpSecret:totpSecret.value||'',
       totpOpen:getComputedStyle(totpContainer).display!=='none',
-      stopwatchVisible:getComputedStyle(stopwatchRow).display!=='none',
+      stopwatchVisible:stopwatchSmall.style.display!=='none',
       stopwatchElapsed:elapsed
     }));
   }
   function loadState(){
-    try{
-      const st=JSON.parse(localStorage.getItem(KEY)||'{}');
-      if(st.click1!==undefined) click1.value=st.click1;
-      if(st.click2!==undefined) click2.value=st.click2;
-      if(st.click3!==undefined) click3.value=st.click3;
-      if(st.totpSecret) totpSecret.value=st.totpSecret;
-      stopwatchRow.style.display=st.stopwatchVisible===false?'none':'flex';
-      swElapsed=st.stopwatchElapsed||0;
-      if(st.totpOpen){ totpContainer.style.display='block'; startTotp(); }
-    }catch(e){}
-  }
+  try{
+    const st=JSON.parse(localStorage.getItem(KEY)||'{}');
+    if(st.click1!==undefined) click1.value=st.click1;
+    if(st.click2!==undefined) click2.value=st.click2;
+    if(st.click3!==undefined) click3.value=st.click3;
+    if(st.totpSecret) totpSecret.value=st.totpSecret;
+
+    const visible = st.stopwatchVisible !== false; // якщо не вказано — показувати
+    stopwatchSmall.style.display = visible ? 'block' : 'none';
+    pauseSmall.style.display = visible ? 'block' : 'none';
+    toggleStopwatch.dataset.visible = visible.toString();
+
+    swElapsed = st.stopwatchElapsed || 0;
+    if(st.totpOpen){ 
+      totpContainer.style.display='block'; 
+      startTotp(); 
+    }
+  }catch(e){}
+}
+
 
   loadState();
   updateTotals();
   updateStopwatchDisplay();
-  function updateTitle() {
-  let percent = totalPercent.textContent.trim();
-  let clicks = totalClicks.textContent.trim();
-
-  if (clicks !== "0") {
-    document.title = `${clicks}  | ${percent}`;
-  } else {
-    document.title = "Project DIMA";
-  }
-}
-
 })();
-</script>
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js')
-    .then(() => console.log('Service Worker зареєстровано'));
-}
+
 </script>
 <script>
 // Зберігаємо розмір перед закриттям
@@ -264,6 +274,3 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
-
-
-
