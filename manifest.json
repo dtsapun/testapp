@@ -1,5 +1,5 @@
 {
-  "name": "Project DIMA",
+  "name": "🐧",
   "short_name": "DIMA",
   "start_url": "./launcher.html",
   "display": "standalone",
@@ -19,3 +19,4 @@
   ]
 
 }
+
