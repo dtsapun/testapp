@@ -273,5 +273,23 @@ if ('serviceWorker' in navigator) {
     .then(() => console.log('Service Worker зареєстровано'));
 }
 </script>
+  <script>
+// Зберігаємо розмір перед закриттям
+window.addEventListener('beforeunload', () => {
+  localStorage.setItem('trackerWindowSize', JSON.stringify({
+    width: window.outerWidth,
+    height: window.outerHeight
+  }));
+});
+
+// При завантаженні вікна пробуємо змінити його розмір
+window.addEventListener('load', () => {
+  const savedSize = JSON.parse(localStorage.getItem('trackerWindowSize') || '{}');
+  if (savedSize.width && savedSize.height) {
+    window.resizeTo(savedSize.width, savedSize.height);
+  }
+});
+</script>
 </body>
 </html>
+
