@@ -132,9 +132,8 @@
   const percent = ((+click1.value||0)*w1 + (+click2.value||0)*w2 + (+click3.value||0)*w3).toFixed(2);
   
   if (clicks > 0) {
-    const clicksFW = toFullWidth(clicks);
     const percentFW = toFullWidth(percent);
-    document.title = `🔥 ${percentFW}% | 🎯 ${clicksFW}`;
+    document.title = `${percentFW}% |${clicks}`;
   } else {
     document.title = "Project DIMA";
   }
@@ -311,3 +310,4 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
