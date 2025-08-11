@@ -124,15 +124,21 @@
     swStart = null; swElapsed = 0; swRunning = false;
     clearInterval(swInterval); updateStopwatchDisplay(); saveState();
   }
+  function toFullWidth(num) {
+  return num.toString().replace(/[0-9]/g, d => String.fromCharCode(d.charCodeAt(0) + 0xFEE0));
+}
   function updateTitle(){
-    const clicks = (+click1.value||0) + (+click2.value||0) + (+click3.value||0);
-    const percent = ((+click1.value||0)*w1 + (+click2.value||0)*w2 + (+click3.value||0)*w3).toFixed(2);
-    if (clicks > 0) {
-      document.title = `${clicks} | ${percent}%`;
-    } else {
-      document.title = "Project DIMA";
-    }
+  const clicks = (+click1.value||0) + (+click2.value||0) + (+click3.value||0);
+  const percent = ((+click1.value||0)*w1 + (+click2.value||0)*w2 + (+click3.value||0)*w3).toFixed(2);
+  
+  if (clicks > 0) {
+    const clicksFW = toFullWidth(clicks);
+    const percentFW = toFullWidth(percent);
+    document.title = `🔥 ${percentFW}% | 🎯 ${clicksFW}`;
+  } else {
+    document.title = "Project DIMA";
   }
+}
   function updateFavicon(clicks, percent) {
   const canvas = document.createElement('canvas');
   canvas.width = 64;
@@ -165,12 +171,8 @@
 }
 
   function updateTotals(){
-  const clicks = (+click1.value||0) + (+click2.value||0) + (+click3.value||0);
-  const percent = ((+click1.value||0)*w1 + (+click2.value||0)*w2 + (+click3.value||0)*w3).toFixed(0);
-
-  updateTitle();
-  updateFavicon(clicks, percent);
-}
+    updateTitle();
+  }
 
   btn1.onclick = () => { click1.value = (+click1.value||0)+1; updateTotals(); startStopwatch(); };
   btn2.onclick = () => { click2.value = (+click2.value||0)+1; updateTotals(); startStopwatch(); };
