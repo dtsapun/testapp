@@ -282,7 +282,6 @@ resetAll.onclick = () => {
       totpSecret:totpSecret.value||'',
       totpOpen:getComputedStyle(totpContainer).display!=='none',
       stopwatchVisible:stopwatchSmall.style.display!=='none',
-      stopwatchElapsed:elapsed
     }));
   }
   function loadState(){
@@ -293,7 +292,7 @@ resetAll.onclick = () => {
       const visible=st.stopwatchVisible!==false;
       stopwatchSmall.style.display=pauseSmall.style.display=visible?'block':'none';
       toggleStopwatch.dataset.visible=visible.toString();
-      swElapsed=st.stopwatchElapsed||0;
+      swElapsed=0;
       if(st.totpOpen){totpContainer.style.display='block';startTotp();}
       updateStats();
     }catch(e){}
@@ -323,3 +322,4 @@ window.addEventListener('load', () => {
 
 </body>
 </html>
+
