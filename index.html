@@ -124,22 +124,24 @@
     swStart = null; swElapsed = 0; swRunning = false;
     clearInterval(swInterval); updateStopwatchDisplay(); saveState();
   }
-  function toFullWidth(num) {
-  return num.toString().replace(/[0-9]/g, d => String.fromCharCode(d.charCodeAt(0) + 0xFEE0));
+  function toBoldFullwidth(numStr) {
+  const map = {
+    '0': '𝟬', '1': '𝟭', '2': '𝟮', '3': '𝟯', '4': '𝟰',
+    '5': '𝟱', '6': '𝟲', '7': '𝟳', '8': '𝟴', '9': '𝟵'
+  };
+  return numStr.toString().split('').map(ch => map[ch] || ch).join('');
 }
-  function updateTitle(){
-  const boldNums = { '0':'𝟬','1':'𝟭','2':'𝟮','3':'𝟯','4':'𝟰','5':'𝟱','6':'𝟲','7':'𝟳','8':'𝟴','9':'𝟵','%':'%' };
-  const toBold = str => str.toString().split('').map(ch => boldNums[ch] || ch).join('');
 
+function updateTitle(){
   const clicks = (+click1.value||0) + (+click2.value||0) + (+click3.value||0);
   const percent = ((+click1.value||0)*w1 + (+click2.value||0)*w2 + (+click3.value||0)*w3).toFixed(2);
-
   if (clicks > 0) {
-    document.title = `${toBold(percent)}% | ${toBold(clicks)}`;
+    document.title = `🔥${toBoldFullwidth(percent)}% | 💪${toBoldFullwidth(clicks)}`;
   } else {
     document.title = "Project DIMA";
   }
 }
+
 
   function updateFavicon(clicks, percent) {
   const canvas = document.createElement('canvas');
@@ -313,5 +315,6 @@ window.addEventListener('load', () => {
 </script>
 </body>
 </html>
+
 
 
